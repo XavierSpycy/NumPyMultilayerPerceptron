@@ -1,4 +1,5 @@
 import time
+import joblib
 import numpy as np
 from scipy.optimize import fsolve
 
@@ -199,7 +200,7 @@ class Activation(object):
             for param, value in kwargs.items():
                 self.params[param]  = value
             
-        if activation == 'linear':
+        if activation == 'linear' or activation is None:
             self.f = self.linear
             self.f_deriv = self.linear_deriv
         elif activation == 'sigmoid':
@@ -270,26 +271,25 @@ class Activation(object):
 
 class Dense(object):    
     def __init__(self, n_in=None, n_out=None,
-                 activation='linear', activation_params={},
+                 activation=None, activation_params={},
                  init=None, init_params={}):
         self.n_in = n_in
         if n_out is None:
             n_out = n_in
         self.n_out = n_out
-        self.params = {}
-        self.grads = {}
         self.activation_prev = None
         self.activation_name = activation
         self.activation_obj = Activation(activation, **activation_params)
         self.activation_f = self.activation_obj.f
         self.activation_deriv = None
-        
+        self.params = {}
         self.set_init_params(init_params)
         if init is None:
             self.init(activation, 'ones')
         else:
             self.init(activation, init)
         self.params['b'] = np.zeros((n_out, ))
+        self.grads = {}
         self.grads['W'] = np.zeros(self.params['W'].shape)
         self.grads['b'] = np.zeros(self.params['b'].shape)
         
@@ -513,9 +513,24 @@ class MultilayerPerceptron(object):
             loss = np.mean(error ** 2)
             delta = -(error * activation_deriv(y_hat))
         elif self.loss == 'CrossEntropy':
-            loss = -np.sum(y * np.log(y_hat + 1e-9)) / y.shape[0]
-            delta = y_hat - y
+            y_hat_clipped = np.clip(y_hat, 1e-10, 1-1e-10)
+            loss = -np.sum(y * np.log(y_hat_clipped)) / y.shape[0]
+            delta = y_hat_clipped - y
         return loss, delta
+    
+    def one_hot_encode(self, y):
+        """Helper function to one-hot encode labels."""
+        y = y.astype(int)
+        unique_labels = np.array(np.unique(y)).tolist()
+        self.n_classes = len(np.unique(y))
+        
+        self.label_to_index = {label: idx for idx, label in enumerate(unique_labels)}
+        self.index_to_label = {idx: label for label, idx in self.label_to_index.items()}
+        
+        one_hot = np.zeros((y.shape[0], self.n_classes))
+        encoded_indices = [self.label_to_index[label] for label in y]
+        one_hot[np.arange(y.shape[0]), encoded_indices] = 1
+        return one_hot
     
     def training_time(self):
         return self.tracker[0]
@@ -523,14 +538,19 @@ class MultilayerPerceptron(object):
     def loss_tracker(self):
         return self.tracker[1]
     
-    def backward(self,delta):
+    def backward(self, delta):
         delta = self.layers[-1].backward(delta, output_layer=True)
         for layer in reversed(self.layers[:-1]):
             delta = layer.backward(delta)
 
-    def fit(self,X, y, batch_size=8, epochs=100):
+    def fit(self, X, y, batch_size=8, epochs=100):
         X = np.array(X)
-        y = np.array(y).reshape(-1, 1)
+        
+        if self.loss == 'CrossEntropy':
+            y = self.one_hot_encode(y)
+        else:
+            y = np.array(y).reshape(-1, 1)
+
         loss_tracker = np.zeros(epochs)
         self.training = True
         
@@ -553,14 +573,24 @@ class MultilayerPerceptron(object):
         end_time = time.time()
         self.tracker = [end_time - start_time, loss_tracker, ]
         
-        
-    def predict(self, x):
+    def predict(self, x, predict_probs=False):
         self.training = False
         x = np.array(x)
-        output = np.zeros(x.shape[0])
-        for i in np.arange(x.shape[0]):
-            output[i] = self.forward(x[i,:])
-        return output
+        output = self.forward(x)
+        if self.loss == 'CrossEntropy':
+            if not predict_probs:
+                class_indices = np.argmax(output, axis=1)
+                decoded_labels = [self.index_to_label[idx] for idx in class_indices]
+                return np.array(decoded_labels).reshape(-1)
+        else:
+            return output.reshape(-1)
+    
+    def save(self, filename):
+        joblib.dump(self, filename)
+        
+    @staticmethod
+    def load(filename):
+        return joblib.load(filename)
 
 class Optimizer(object):
     def __init__(self, name):
@@ -612,7 +642,7 @@ class SGD(object):
                     self.velocity[i][key] = np.zeros_like(layer.params[key])
 
 class Adagrad(object):
-    def __init__(self, lr=1.0, weight_decay=0.01, epsilon=1e-10):
+    def __init__(self, lr=1.0, weight_decay=0.0, epsilon=1e-10):
         self.lr = lr
         self.weight_decay = weight_decay
         self.epsilon = epsilon
