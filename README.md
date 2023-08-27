@@ -249,3 +249,28 @@ mlp.compile(optimizer=Adam(),
   <br>
   Loss using SGD
 </p>
+
+### Loss Functions
+Not only can you use 'MeanSquareError', but you can also use 'CrossEntropy'. More interestingly, one-hot encoding is provided as an in-built method, so you don't need to pass preprocessed data to the model. However, ensure that the data passed to the model is in numerical encoding.
+
+When compiling the model using 'CrossEntropy', you will see:
+<p align="center">
+  <img src="./outcomes/loss_decision_boundary.png">
+  <br>
+  Decision Boundary using Cross Entropy
+</p>
+
+### Save and Load our model
+We provide methods to save and load the model.
+- How to save?
+```python
+# Assume mlp is a trained model
+mlp.save('mlp.pickle')
+```
+- How to load?
+```python
+mlp = MultilayerPerceptron.load('mlp.pickle')
+```
+
+## :sparkles: 5. Test on a Complex dataset
+This is the content we will be updating next, and the work is still in progress.
