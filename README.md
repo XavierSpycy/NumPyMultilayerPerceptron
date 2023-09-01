@@ -79,7 +79,7 @@ Finally, let's look at the decision boundary of our model.
 **That's awesome!!**
 
 ## :sparkles: 3. Key modules
-### Activations
+### 3.1 Activations
 - Hyperbolic Tangent(Tanh)
   - Formula:      
     $\mathrm{Tanh}(x) = \mathrm{tanh}(x) = \frac{\mathrm{exp}(x) - \mathrm{exp}(-x)}{\mathrm{exp}(x) + \mathrm{exp}(-x)}$
@@ -132,7 +132,7 @@ Finally, let's look at the decision boundary of our model.
 
 Note that due to GitHub's markdown not supporting the piecewise function, some function formulas are not provided.
 
-### Layers
+### 3.2 Layers
 - **Dense**
   - Dense Layer (Fully Connected Layer)
   - **Definition**:      
@@ -158,7 +158,7 @@ Note that due to GitHub's markdown not supporting the piecewise function, some f
   - **Definition**:
     An Activation Layer in a neural network is a layer that applies a non-linear function to its inputs, transforming the data to introduce non-linearity into the model. This non-linearity allows the network to learn from error and make adjustments, which is essential for learning complex patterns. 
 
-### Optimizers
+### 3.3 Optimizers
 - SGD(including Momentum and Nesterov)
   - Required Parameter: lr
   - Default Parameter: momentum=0.0, nesterov=False, weight_decay=0.0
@@ -173,7 +173,7 @@ Note that due to GitHub's markdown not supporting the piecewise function, some f
   - Default Parameter: lr=1e-3, beta1=0.9, beta2=0.999, epsilon=1e-08, weight_decay=0.0
 
 ## :sparkles: 4. Instructions
-### Regularization
+### 4.1 Regularization
 In the previous toy example, the structure of the model is:
 ```python
 layers = [
@@ -209,7 +209,7 @@ When employing regularization, follow this order: Linear -> BatchNorm -> Activ -
   Decision Boundary After Regularization
 </p>
 
-### Optimizer
+### 4.2 Optimizer
 When training the model, the optimizer can be defined in the toy example as below:
 ```python
 mlp.compile(optimizer='Adam',
@@ -250,7 +250,7 @@ mlp.compile(optimizer=Adam(),
   Loss using SGD
 </p>
 
-### Loss Functions
+### 4.3 Loss Functions
 Not only can you use 'MeanSquareError', but you can also use 'CrossEntropy'. More interestingly, one-hot encoding is provided as an in-built method, so you don't need to pass preprocessed data to the model. However, ensure that the data passed to the model is in numerical encoding.
 
 When compiling the model using 'CrossEntropy', you will see:
@@ -260,7 +260,7 @@ When compiling the model using 'CrossEntropy', you will see:
   Decision Boundary using Cross Entropy
 </p>
 
-### Save and Load our model
+### 4.4 Save and Load our model
 We provide methods to save and load the model.
 - How to save?
 ```python
@@ -272,5 +272,142 @@ mlp.save('mlp.pickle')
 mlp = MultilayerPerceptron.load('mlp.pickle')
 ```
 
-## :sparkles: 5. Test on a Complex dataset
-This is the content we will be updating next, and the work is still in progress.
+## :sparkles: 5. Testing on a Complex Dataset
+### 5.1 Dataset Overview
+Our datasets, comprising both a training and test set, are **extremely balanced**. The number of features stands at 128, and label classes are integers ranging from 0 to 9. Notably, in my implementation, the multilayer perceptron automatically one-hot encodes them. Each class has 5,000 samples in the training set and 1,000 in the test set. Since these datasets are privately owned, they aren't uploaded to the GitHub repo. If interested, kindly email me, and I'll share a **portion** of the data for verification purposes. [Email me](mailto:jixu9182@uni.sydney.edu.au)
+
+### 5.2 Step-by-Step Guide
+#### Step 1. Import Required Libraries & Modules
+Do note, if other optimizers or regularization methods are necessary, make sure to import them as required.
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from mlperceptron import MultilayerPerceptron, Dense, Adam
+```
+#### Step 2. Load the Datasets
+Ensure that the labels are structured in a 1-D array with the shape (number_of_samples, ). Otherwise, it might trigger errors.
+```python
+X_train = np.load('train_data.npy')
+y_train = np.load('train_label.npy').reshape(-1)
+X_test = np.load('test_data.npy')
+y_test = np.load('test_label.npy').reshape(-1)
+print(f"The shape of X_train is {X_train.shape}, and the shape of y_train is {y_train.shape}.")
+print(f"The classes in y_train are: {np.unique(y_train)}.")
+```
+Outputs:
+```
+The shape of X_train is (50000, 128), and the shape of y_train is (50000,).
+The classes in y_train are: [0 1 2 3 4 5 6 7 8 9].
+```
+
+#### Step 3. Review the Label Distribution
+For datasets that aren't balanced, you might need to employ preprocessing techniques.
+```python
+train_label_dist = dict.fromkeys(np.unique(y_train), 0)
+test_label_dist = dict.fromkeys(np.unique(y_test), 0)
+
+for y in y_train:
+    train_label_dist[y] += 1
+for y in y_test:
+    test_label_dist[y] += 1
+
+print(train_label_dist)
+print(test_label_dist)
+
+```
+Outputs:
+```
+{6: 5000, 9: 5000, 4: 5000, 1: 5000, 2: 5000, 7: 5000, 8: 5000, 3: 5000, 5: 5000, 0: 5000}
+{3: 1000, 8: 1000, 0: 1000, 6: 1000, 1: 1000, 9: 1000, 5: 1000, 7: 1000, 4: 1000, 2: 1000}
+```
+#### Step 4. Construct the Multilayer Perceptron
+To ensure reproducibility, we've set a random seed here. The chosen architecture is based on past experience with deep-learning tasks. Don't hesitate to experiment with your designs. Due to my implementation specifics, some activation functions could be computationally intensive. Choose wisely.
+```python
+np.random.seed(3407)
+layers = [
+    Dense(128, 96, activation='elu', init='xavier_uniform'),
+    Dense(96, 64, activation='elu', init='xavier_uniform'),
+    Dense(64, 48, activation='elu', init='xavier_uniform'),
+    Dense(48, 32, activation='elu', init='xavier_uniform'),
+    Dense(32, 24, activation='elu', init='xavier_uniform'),
+    Dense(24, 16, activation='elu', init='xavier_uniform'),
+    Dense(16, 10, activation='softmax', init='xavier_uniform')
+]
+mlp = MultilayerPerceptron(layers)
+mlp.compile(optimizer=Adam(lr=2e-6, weight_decay=0.02),
+            loss='CrossEntropy')
+```
+
+#### Step 5. Train the Model and Present its Training Metrics
+```python
+mlp.fit(X_train, y_train, epochs=600, batch_size=32)
+loss = mlp.loss_tracker()
+train_time = mlp.training_time()
+print(f'Training time: {train_time:.2f} second(s).')
+print(f'Loss: {loss[-1]:.2f}.')
+plt.figure(figsize=(15, 4))
+plt.plot(loss)
+plt.grid()
+plt.show()
+```
+Outputs:
+```
+Training time: 768.38 second(s).
+Loss: 1.35.
+```
+<p align="center">
+  <img src="./outcomes/10classes.png">
+  <br>
+  The training info
+</p>
+
+#### Step 6. Evaluate the Model
+Though I've considered adding built-in metrics for model evaluation during development, metrics can vary significantly across different tasks. Hence, I'd recommend defining your evaluation strategies.
+
+```python
+print(np.mean(y_train == mlp.predict(X_train)))
+print(np.mean(y_test == mlp.predict(X_test)))
+```
+Outputs:
+```
+0.51948
+0.4958
+```
+### 5.3 A Streamlined and Comprehensive Workflow
+For clarity, the above steps might seem repetitive. Here's a more streamlined yet complete workflow:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from mlperceptron import MultilayerPerceptron, Dense, Adam
+
+X_train = np.load('train_data.npy')
+y_train = np.load('train_label.npy').reshape(-1)
+X_test = np.load('test_data.npy')
+y_test = np.load('test_label.npy').reshape(-1)
+
+layers = [
+    Dense(128, 96, activation='elu', init='xavier_uniform'),
+    Dense(96, 64, activation='elu', init='xavier_uniform'),
+    Dense(64, 48, activation='elu', init='xavier_uniform'),
+    Dense(48, 32, activation='elu', init='xavier_uniform'),
+    Dense(32, 24, activation='elu', init='xavier_uniform'),
+    Dense(24, 16, activation='elu', init='xavier_uniform'),
+    Dense(16, 10, activation='softmax', init='xavier_uniform')
+]
+mlp = MultilayerPerceptron(layers)
+mlp.compile(optimizer=Adam(lr=2e-6, weight_decay=0.02),
+            loss='CrossEntropy')
+mlp.fit(X_train, y_train, epochs=600, batch_size=32)
+loss = mlp.loss_tracker()
+train_time = mlp.training_time()
+print(f'Training time: {train_time:.2f} second(s).')
+print(f'Loss: {loss[-1]:.2f}.')
+plt.figure(figsize=(15, 4))
+plt.plot(loss)
+plt.grid()
+plt.show()
+
+print(np.mean(y_train == mlp.predict(X_train)))
+print(np.mean(y_test == mlp.predict(X_test)))
+```
