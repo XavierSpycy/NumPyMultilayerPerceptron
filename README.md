@@ -260,7 +260,7 @@ When compiling the model using 'CrossEntropy', you will see:
   Decision Boundary using Cross Entropy
 </p>
 
-### 4.4 Save and Load our model
+### 4.4 Save and Load Our Model
 We provide methods to save and load the model.
 - How to save?
 ```python
@@ -272,6 +272,14 @@ mlp.save('mlp.pickle')
 mlp = MultilayerPerceptron.load('mlp.pickle')
 ```
 
+### 4.5 Progress Bar Integration
+
+In our recent update, we have integrated the **'tqdm()'** function from the **'tqdm'** library into the training process. While this enhancement doesn't provide real-time metrics display during training, it introduces a progress bar. This bar not only visualizes the elapsed time for each epoch but also estimates the time of completion.
+
+After completing the training procedure, the following output will be displayed in the VS Code terminal:
+
+```100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 500/500 [22:38<00:00,  2.72s/it]```
+
 ## :sparkles: 5. Testing on a Complex Dataset
 ### 5.1 Dataset Overview
 Our datasets, comprising both a training and test set, are **extremely balanced**. The number of features stands at 128, and label classes are integers ranging from 0 to 9. Notably, in my implementation, the multilayer perceptron automatically one-hot encodes them. Each class has 5,000 samples in the training set and 1,000 in the test set. Since these datasets are privately owned, they aren't uploaded to the GitHub repo. If interested, kindly email me, and I'll share a **portion** of the data for verification purposes. [Email me](mailto:jixu9182@uni.sydney.edu.au)
@@ -282,15 +290,15 @@ Do note, if other optimizers or regularization methods are necessary, make sure 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from mlperceptron import MultilayerPerceptron, Dense, Adam
+from datasets.data_loader import datasets
+from model.mlperceptron import MultilayerPerceptron, Dense, Dropout, Adam
+from eval.metrics import accuracy
 ```
 #### Step 2. Load the Datasets
 Ensure that the labels are structured in a 1-D array with the shape (number_of_samples, ). Otherwise, it might trigger errors.
 ```python
-X_train = np.load('train_data.npy')
-y_train = np.load('train_label.npy').reshape(-1)
-X_test = np.load('test_data.npy')
-y_test = np.load('test_label.npy').reshape(-1)
+X_train, y_train = datasets(train=True)
+X_test, y_test = datasets(train=False)
 print(f"The shape of X_train is {X_train.shape}, and the shape of y_train is {y_train.shape}.")
 print(f"The classes in y_train are: {np.unique(y_train)}.")
 ```
@@ -325,22 +333,29 @@ To ensure reproducibility, we've set a random seed here. The chosen architecture
 ```python
 np.random.seed(3407)
 layers = [
-    Dense(128, 96, activation='elu', init='xavier_uniform'),
-    Dense(96, 64, activation='elu', init='xavier_uniform'),
-    Dense(64, 48, activation='elu', init='xavier_uniform'),
-    Dense(48, 32, activation='elu', init='xavier_uniform'),
-    Dense(32, 24, activation='elu', init='xavier_uniform'),
-    Dense(24, 16, activation='elu', init='xavier_uniform'),
+    Dense(128, 120, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.25),
+    Dense(120, 112, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.20),
+    Dense(112, 96, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.15),
+    Dense(96, 64, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.10),
+    Dense(64, 48, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.05),
+    Dense(48, 32, activation='elu', init='kaiming_uniform'),
+    Dense(32, 24, activation='elu', init='kaiming_uniform'),
+    Dense(24, 16, activation='elu', init='kaiming_uniform'),
     Dense(16, 10, activation='softmax', init='xavier_uniform')
 ]
 mlp = MultilayerPerceptron(layers)
-mlp.compile(optimizer=Adam(lr=2e-6, weight_decay=0.02),
+mlp.compile(optimizer=Adam(lr=1e-3, weight_decay=0.02),
             loss='CrossEntropy')
 ```
 
 #### Step 5. Train the Model and Present its Training Metrics
 ```python
-mlp.fit(X_train, y_train, epochs=600, batch_size=32)
+mlp.fit(X_train, y_train, epochs=500, batch_size=32)
 loss = mlp.loss_tracker()
 train_time = mlp.training_time()
 print(f'Training time: {train_time:.2f} second(s).')
@@ -352,40 +367,35 @@ plt.show()
 ```
 Outputs:
 ```
-Training time: 768.38 second(s).
-Loss: 1.35.
+Training time: 1358.89 second(s).
+Loss: 1.34.
 ```
 <p align="center">
-  <img src="./outcomes/10classes.png">
+  <img src="./outcomes/optimal.png">
   <br>
-  The training info
+  Training procedure
 </p>
 
 #### Step 6. Evaluate the Model
-Though I've considered adding built-in metrics for model evaluation during development, metrics can vary significantly across different tasks. Hence, I'd recommend defining your evaluation strategies.
+Though we've considered adding built-in metrics for model evaluation during development, metrics can vary significantly across different tasks. Hence, we'd recommend defining your evaluation strategies.
 
 ```python
-print(np.mean(y_train == mlp.predict(X_train)))
-print(np.mean(y_test == mlp.predict(X_test)))
+print(f"Accuracy on the training set is: {accuracy(y_train, mlp.predict(X_train)):.2%}." )
+print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}.")
 ```
 Outputs:
 ```
-0.51948
-0.4958
+Accuracy on the training set is: 59.72%.
+Accuracy on the test set is: 55.69%.
 ```
-### 5.3 A Streamlined and Comprehensive Workflow
-For clarity, the above steps might seem repetitive. Here's a more streamlined yet complete workflow:
 
+If you wish to save the trained model, use the following code:
 ```python
-import numpy as np
-import matplotlib.pyplot as plt
-from mlperceptron import MultilayerPerceptron, Dense, Adam
-
-X_train = np.load('train_data.npy')
-y_train = np.load('train_label.npy').reshape(-1)
-X_test = np.load('test_data.npy')
-y_test = np.load('test_label.npy').reshape(-1)
-
+mlp.save('mlp.pickle')
+```
+### 5.3 Simplified Model Option
+For those seeking a satisfactory but not top-tier model, consider the following architecture:
+```python
 layers = [
     Dense(128, 96, activation='elu', init='xavier_uniform'),
     Dense(96, 64, activation='elu', init='xavier_uniform'),
@@ -399,6 +409,63 @@ mlp = MultilayerPerceptron(layers)
 mlp.compile(optimizer=Adam(lr=2e-6, weight_decay=0.02),
             loss='CrossEntropy')
 mlp.fit(X_train, y_train, epochs=600, batch_size=32)
+```
+This model provides consistent training and moderate performance. The training metrics are as follows:
+```
+Training time: 768.38 second(s).
+Loss: 1.35.
+```
+<p align="center">
+  <img src="./outcomes/10classes.png">
+  <br>
+  Training procedure
+</p>
+
+```
+Accuracy on the training set is: 51.95%.
+Accuracy on the test set is: 49.58%.
+```
+
+### 5.4 A Streamlined and Comprehensive Workflow
+For clarity, the above steps might seem repetitive. Below is a more concise and efficient workflow, also found in the **run.py** file:
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from datasets.data_loader import datasets
+from model.mlperceptron import MultilayerPerceptron, Dense, Dropout, Adam
+from eval.metrics import accuracy
+
+# Loading datasets
+X_train, y_train = datasets(train=True)
+X_test, y_test = datasets(train=False)
+
+np.random.seed(3407)
+
+# Defining the model architecture
+layers = [
+    Dense(128, 120, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.25),
+    Dense(120, 112, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.20),
+    Dense(112, 96, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.15),
+    Dense(96, 64, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.10),
+    Dense(64, 48, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.05),
+    Dense(48, 32, activation='elu', init='kaiming_uniform'),
+    Dense(32, 24, activation='elu', init='kaiming_uniform'),
+    Dense(24, 16, activation='elu', init='kaiming_uniform'),
+    Dense(16, 10, activation='softmax', init='xavier_uniform')
+]
+
+mlp = MultilayerPerceptron(layers)
+mlp.compile(optimizer=Adam(lr=1e-3, weight_decay=0.02),
+            loss='CrossEntropy')
+mlp.fit(X_train, y_train, epochs=500, batch_size=32)
+
+# Displaying training metrics
 loss = mlp.loss_tracker()
 train_time = mlp.training_time()
 print(f'Training time: {train_time:.2f} second(s).')
@@ -408,6 +475,64 @@ plt.plot(loss)
 plt.grid()
 plt.show()
 
-print(np.mean(y_train == mlp.predict(X_train)))
-print(np.mean(y_test == mlp.predict(X_test)))
+print(f"Accuracy on the training set is: {accuracy(y_train, mlp.predict(X_train)):.2%}." )
+print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}.")
+
+# Uncomment below to save the model
+# mlp.save('mlp.pickle')
 ```
+
+Alternatively, if you prefer to utilize our pre-trained model, refer to the following snippet, also available in the **load.py** file:
+```python
+from datasets.data_loader import datasets
+from model.mlperceptron import MultilayerPerceptron
+from eval.metrics import accuracy
+
+# Loading datasets
+X_train, y_train = datasets(train=True)
+X_test, y_test = datasets(train=False)
+
+# Loading the pre-trained model
+mlp = MultilayerPerceptron.load('model_hub/mlp.pickle')
+
+print(f"Accuracy on the training set is: {accuracy(y_train, mlp.predict(X_train)):.2%}." )
+print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}.")
+```
+## :sparkles: 6. Project structure
+```
+├── data          
+|   ├── train_data.npy
+|   ├── train_label.npy
+|   ├── test_data.npy
+|   └── test_label.npy
+|
+├── datasets          
+|   ├── data_loader.py
+|   └── __init__.py
+|
+├── model_hub      
+│   └── mlp.pickle
+|         
+├── models      
+|   ├── mlperceptron.py
+|   └── __init__.py    
+|
+├── outputs/      
+│   └── # Some visualizations      
+|
+└── eval          
+|   ├── metrics.py
+|   └── __init__.py
+|
+├── run.py
+├── load.py    
+```
+
+## :sparkles: 7. Update Log
+This section lists the changes and updates made to the Multilayer Perceptron framework. Each update will include the version number, release date, and a brief summary of the changes made.
+
+### Version: 2023-09-05
+- **Added**: Integrated the **'tqdm()'** function from the **'tqdm'** library into the training process.
+- **Re-organized**: Revamped the entire repository structure for improved integration and standardization.
+- **Improved**: Enhanced the architecture of the multilayer perceptron for the specific task.
+- **Future work**: Plan to integrate an **early stopping** strategy into the training procedure.
