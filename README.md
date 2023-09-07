@@ -14,7 +14,7 @@ First, we need to import the necessary packages.
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from mlperceptron import Dense, MultilayerPerceptron
+from model.mlperceptron import Dense, MultilayerPerceptron
 ```
 Then, we need to generate some random data points. Please note that for reproductivity, a random seed should be set.
 ```python
@@ -185,6 +185,7 @@ layers = [
 ```
 Given that our training data is relatively simple, regularizations aren't strictly necessary. However, if the model starts overfitting, consider applying regularization techniques. In such a scenario, the layers should be constructed as follows:
 ```python
+from model.mlperceptron import BatchNorm, Dropout, Activ
 layers = [
     Dense(2, 4, init='kaiming_normal', init_params={'mode': 'out'}),
     BatchNorm(4),
@@ -329,7 +330,14 @@ Outputs:
 {3: 1000, 8: 1000, 0: 1000, 6: 1000, 1: 1000, 9: 1000, 5: 1000, 7: 1000, 4: 1000, 2: 1000}
 ```
 #### Step 4. Construct the Multilayer Perceptron
-To ensure reproducibility, we've set a random seed here. The chosen architecture is based on past experience with deep-learning tasks. Don't hesitate to experiment with your designs. Due to my implementation specifics, some activation functions could be computationally intensive. Choose wisely.
+To ensure reproducibility, we've set a random seed here. The chosen architecture is based on past experience with deep-learning tasks. Don't hesitate to experiment with your designs. Due to our implementation specifics, some activation functions could be computationally intensive. Choose wisely.
+
+<p align="center">
+  <img src="./outcomes/optimal.svg">
+  <br>
+  The architecture
+</p>
+
 ```python
 np.random.seed(3407)
 layers = [
@@ -395,6 +403,13 @@ mlp.save('mlp.pickle')
 ```
 ### 5.3 Simplified Model Option
 For those seeking a satisfactory but not top-tier model, consider the following architecture:
+
+<p align="center">
+  <img src="./outcomes/good.svg">
+  <br>
+ The architecture
+</p>
+
 ```python
 layers = [
     Dense(128, 96, activation='elu', init='xavier_uniform'),
@@ -500,27 +515,27 @@ print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}
 ```
 ## :sparkles: 6. Project structure
 ```
-├── data          
+├── data/          
 |   ├── train_data.npy
 |   ├── train_label.npy
 |   ├── test_data.npy
 |   └── test_label.npy
 |
-├── datasets          
+├── datasets/          
 |   ├── data_loader.py
 |   └── __init__.py
 |
-├── model_hub      
+├── model_hub/      
 │   └── mlp.pickle
 |         
-├── models      
+├── models/      
 |   ├── mlperceptron.py
 |   └── __init__.py    
 |
-├── outputs/      
+├── outcomes/      
 │   └── # Some visualizations      
 |
-└── eval          
+└── eval/          
 |   ├── metrics.py
 |   └── __init__.py
 |
