@@ -283,7 +283,7 @@ After completing the training procedure, the following output will be displayed 
 
 ## :sparkles: 5. Testing on a Complex Dataset
 ### 5.1 Dataset Overview
-Our datasets, comprising both a training and test set, are **extremely balanced**. The number of features stands at 128, and label classes are integers ranging from 0 to 9. Notably, in my implementation, the multilayer perceptron automatically one-hot encodes them. Each class has 5,000 samples in the training set and 1,000 in the test set. Since these datasets are privately owned, they aren't uploaded to the GitHub repo. If interested, kindly email me, and I'll share a **portion** of the data for verification purposes. [Email me](mailto:jixu9182@uni.sydney.edu.au)
+Our datasets, comprising both a training and test set, are **extremely balanced**. The number of features stands at 128, and label classes are integers ranging from 0 to 9. Notably, in our implementation, the multilayer perceptron automatically one-hot encodes them. Each class has 5,000 samples in the training set and 1,000 in the test set. **Datasets were released in the update on Oct. 2, 2023.**
 
 ### 5.2 Step-by-Step Guide
 #### Step 1. Import Required Libraries & Modules
@@ -535,19 +535,23 @@ print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}
 ├── outcomes/      
 │   └── # Some visualizations      
 |
-└── eval/          
+├── eval/          
 |   ├── metrics.py
 |   └── __init__.py
 |
 ├── run.py
-├── load.py    
+└── load.py    
 ```
 
 ## :sparkles: 7. Update Log
 This section lists the changes and updates made to the Multilayer Perceptron framework. Each update will include the version number, release date, and a brief summary of the changes made.
 
-### Version: 2023-09-05
+### Version Update: 2023-09-05
 - **Added**: Integrated the **'tqdm()'** function from the **'tqdm'** library into the training process.
 - **Re-organized**: Revamped the entire repository structure for improved integration and standardization.
 - **Improved**: Enhanced the architecture of the multilayer perceptron for the specific task.
 - **Future work**: Plan to integrate an **early stopping** strategy into the training procedure.
+
+### Repo Update: 2023-10-02
+- **Added**: Released the datasets.
+- **Fixed**: Fixed several typos in README.md.
