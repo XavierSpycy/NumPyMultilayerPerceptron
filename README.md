@@ -5,6 +5,14 @@
   Multilayer Perceptron
 </p>
 
+:tada: **Exciting News!**  
+For a seamless experience, we have now integrated our project with Google Colab by launching a Jupyter Notebook. Dive right in by clicking the button below!
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/XavierSpycy/NumPyMultilayerPerceptron/blob/main/mlp_quickstart.ipynb)
+
+:pushpin: **Important**:  
+To access all the files from our repository, ensure you execute the first code snippet in the notebook. The second snippet provides a direct illustration of the pipeline in `run.py`. Please be aware that the training duration might differ on Colab compared to local setups. The entire training could take approximately 58 minutes. If this is too lengthy, consider reducing the number of epochs until the training duration is satisfactory for you.
+
 ## :sparkles: 1. Introduction
 This repository contains a framework for a Multilayer Perceptron implemented solely using NumPy, with the exception of one imported SciPy function. This project draws inspiration from both TensorFlow and PyTorch. As you delve deeper, you'll notice that constructing a model with this framework bears a resemblance to the style of TensorFlow. Furthermore, some specific implementations within the source code are influenced by PyTorch. If you're keen on understanding the design and usage of this framework, let's dive in!
 
@@ -442,7 +450,7 @@ Accuracy on the test set is: 49.58%.
 ```
 
 ### 5.4 A Streamlined and Comprehensive Workflow
-For clarity, the above steps might seem repetitive. Below is a more concise and efficient workflow, also found in the **run.py** file:
+For clarity, the above steps might seem repetitive. Below is a more concise and efficient workflow, also found in the `run.py` file:
 
 ```python
 import numpy as np
@@ -555,3 +563,7 @@ This section lists the changes and updates made to the Multilayer Perceptron fra
 ### Repo Update: 2023-10-02
 - **Added**: Released the datasets.
 - **Fixed**: Fixed several typos in README.md.
+
+### Repo Update: 2023-10-07
+- **Added**: Introduced a Jupyter Notebook titled `mlp_quickstart.ipynb` for a seamless integration with Google Colab.
+- **Enhanced**: Improved the README.md for clarity and better user navigation by incorporating emojis and polishing the content.
