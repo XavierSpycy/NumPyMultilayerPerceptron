@@ -1,6 +1,22 @@
+English|[中文版](README.zh-CN.md)
 # Multilayer Perceptron from Scratch using NumPy
+
+**Contents**
+- [1. Introduction](#sparkles-1-introduction)
+- [2. A toy example](#sparkles-2-a-toy-example)
+- [3. Key modules](#sparkles-3-key-modules)
+  - [3.1. Activations](#31-activations)
+  - [3.2. Layers](#32-layers)
+  - [3.3. Optimizers](#33-optimizers)
+  - [3.4. Learning Rate Scheduler](#34-learning-rate-scheduler)
+  - [3.5. Callbacks](#35-callbacks)
+- [4. Instructions](#sparkles-4-instructions)
+- [5. Testing on a complex dataset](#sparkles-5-testing-on-a-complex-dataset)
+- [6. Project structure](#sparkles-6-project-structure)
+- [7. Update log](#sparkles-7-update-log)
+
 <p align="center">
-  <img src="./outcomes/MLP.jpg">
+  <img src="figures/MLP.jpg">
   <br>
   Multilayer Perceptron
 </p>
@@ -11,18 +27,19 @@ For a seamless experience, we have now integrated our project with Google Colab 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/XavierSpycy/NumPyMultilayerPerceptron/blob/main/mlp_quickstart.ipynb)
 
 :pushpin: **Important**:  
-To access all the files from our repository, ensure you execute the first code snippet in the notebook. The second snippet provides a direct illustration of the pipeline in `run.py`. Please be aware that the training duration might differ on Colab compared to local setups. The entire training could take approximately 58 minutes. If this is too lengthy, consider reducing the number of epochs until the training duration is satisfactory for you.
+To access all the files from our repository, ensure you execute the `Setup` code snippet in the notebook. The `Toy Example` section shows our toy example below. The `Pipeline` section provides a direct illustration of the pipeline in `run.py`. Please be aware that the training duration might differ on Colab compared to local setups. The entire training could take approximately 58 minutes (It depends on the allocated virtual machine). If this is too lengthy, consider reducing the number of epochs until the training duration is satisfactory for you.
 
 ## :sparkles: 1. Introduction
 This repository contains a framework for a Multilayer Perceptron implemented solely using NumPy, with the exception of one imported SciPy function. This project draws inspiration from both TensorFlow and PyTorch. As you delve deeper, you'll notice that constructing a model with this framework bears a resemblance to the style of TensorFlow. Furthermore, some specific implementations within the source code are influenced by PyTorch. If you're keen on understanding the design and usage of this framework, let's dive in!
 
-## :sparkles: 2. A topy example
+## :sparkles: 2. A toy example
 Let's dive into a toy example.
 First, we need to import the necessary packages.
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-from model.mlperceptron import Dense, MultilayerPerceptron
+from nn.mlp import MultilayerPerceptron
+from nn.layers import Dense
 ```
 Then, we need to generate some random data points. Please note that for reproductivity, a random seed should be set.
 ```python
@@ -43,7 +60,7 @@ plt.show()
 ```
 
 <p align="center">
-  <img src="./outcomes/random_points.png">
+  <img src="figures/random_points.png">
   <br>
   Random Data Points
 </p>
@@ -59,18 +76,15 @@ layers = [
 mlp = MultilayerPerceptron(layers)
 mlp.compile(optimizer='Adam',
             loss='MeanSquareError')
-mlp.fit(X, y, epochs=80)
+mlp.fit(X, y, epochs=80, batch_size=8, use_progress_bar=True)
 ```
 We've already done it. Easy? That's what we want!
 Let's check its loss through epochs.
 ```python
-loss = mlp.loss_tracker()
-plt.figure(figsize=(15,4))
-plt.plot(loss)
-plt.grid()
+mlp.plot_loss()
 ```
 <p align="center">
-  <img src="./outcomes/toy_loss.png">
+  <img src="figures/toy_loss.png">
   <br>
   Loss through epochs
 </p>
@@ -79,7 +93,7 @@ Not bad! It seems to work as expected.
 
 Finally, let's look at the decision boundary of our model.
 <p align="center">
-  <img src="./outcomes/toy_decision_boundary.png">
+  <img src="figures/toy_decision_boundary.png">
   <br>
   Decision Boundary
 </p>
@@ -88,6 +102,8 @@ Finally, let's look at the decision boundary of our model.
 
 ## :sparkles: 3. Key modules
 ### 3.1 Activations
+Since this project evolved from an assignment, the differentiation is done manually rather than automatically. Feel free to make modifications if needed.
+
 - Hyperbolic Tangent(Tanh)
   - Formula:      
     $\mathrm{Tanh}(x) = \mathrm{tanh}(x) = \frac{\mathrm{exp}(x) - \mathrm{exp}(-x)}{\mathrm{exp}(x) + \mathrm{exp}(-x)}$
@@ -167,18 +183,36 @@ Note that due to GitHub's markdown not supporting the piecewise function, some f
     An Activation Layer in a neural network is a layer that applies a non-linear function to its inputs, transforming the data to introduce non-linearity into the model. This non-linearity allows the network to learn from error and make adjustments, which is essential for learning complex patterns. 
 
 ### 3.3 Optimizers
-- SGD(including Momentum and Nesterov)
-  - Required Parameter: lr
-  - Default Parameter: momentum=0.0, nesterov=False, weight_decay=0.0
+- SGD (including Momentum and Nesterov)
+  - Required Parameter: `lr`
+  - Default Parameter: `momentum=0.0`, `nesterov=False`, `weight_decay=0.0`
 - Adagrad
   - Required Parameter: None
-  - Default Parameter: lr=1.0, weight_decay=0.0, epsilon=1e-10
+  - Default Parameter: `lr=1.0`, `weight_decay=0.0`, `epsilon=1e-10`
 - Adadelta
   - Required Parameter: None
-  - Default Parameter: lr=1.0, rho=0.9, epsilon=1e-06, weight_decay=0.0
+  - Default Parameter: `lr=1.0`, `rho=0.9`, `epsilon=1e-06`, `weight_decay=0.0`
 - Adam
   - Required Parameter: None
-  - Default Parameter: lr=1e-3, beta1=0.9, beta2=0.999, epsilon=1e-08, weight_decay=0.0
+  - Default Parameter: `lr=1e-3`, `beta1=0.9`, `beta2=0.999`, `epsilon=1e-08`, `weight_decay=0.0`
+
+### 3.4 Learning Rate Scheduler
+Status: Stable – Achieved Desired Outcomes
+- StepLR
+  - Required Parameter: `optimizer`, `step_size`
+  - Default Parameter: `gamma=0.1`
+- ConstantLR
+  - Required Parameter: `optimizer`
+  - Default Parameter: `factor=1./3`, `total_iters=5`
+- MultiStepLR
+  - Required Parameter: `optimizer`, `milestones`
+  - Default Parameter: `gamma=0.1`
+
+### 3.5 Callbacks
+Status: Currently in Testing Phase
+- EarlyStopping:
+  - Required Parameter: `validation_set`, `criterion`, `min_delta`, `patience`
+  - Default Parameter: `step_size=5`, `mode='min'`, `restore_best_weights=False`, `start_from_epoch=0`
 
 ## :sparkles: 4. Instructions
 ### 4.1 Regularization
@@ -193,7 +227,7 @@ layers = [
 ```
 Given that our training data is relatively simple, regularizations aren't strictly necessary. However, if the model starts overfitting, consider applying regularization techniques. In such a scenario, the layers should be constructed as follows:
 ```python
-from model.mlperceptron import BatchNorm, Dropout, Activ
+from nn.layers import BatchNorm, Dropout, Activ
 layers = [
     Dense(2, 4, init='kaiming_normal', init_params={'mode': 'out'}),
     BatchNorm(4),
@@ -213,7 +247,7 @@ layers = [
 When employing regularization, follow this order: Linear -> BatchNorm -> Activ -> Dropout.
 
 <p align="center">
-  <img src="./outcomes/reg_decision_boundary.png">
+  <img src="figures/reg_decision_boundary.png">
   <br>
   Decision Boundary After Regularization
 </p>
@@ -254,22 +288,46 @@ mlp.compile(optimizer=Adam(),
             loss='MeanSquareError')
 ```
 <p align="center">
-  <img src="./outcomes/opt_loss.png">
+  <img src="figures/opt_loss.png">
   <br>
   Loss using SGD
 </p>
 
 ### 4.3 Loss Functions
-Not only can you use 'MeanSquareError', but you can also use 'CrossEntropy'. More interestingly, one-hot encoding is provided as an in-built method, so you don't need to pass preprocessed data to the model. However, ensure that the data passed to the model is in numerical encoding.
+Not only can you use `MeanSquareError`, but you can also use `CrossEntropy`. More interestingly, one-hot encoding is provided as an in-built method, so you don't need to pass preprocessed data to the model. However, ensure that the data passed to the model is in numerical encoding.
 
-When compiling the model using 'CrossEntropy', you will see:
+When compiling the model using `CrossEntropy`, you will see:
 <p align="center">
-  <img src="./outcomes/loss_decision_boundary.png">
+  <img src="figures/loss_decision_boundary.png">
   <br>
   Decision Boundary using Cross Entropy
 </p>
 
-### 4.4 Save and Load Our Model
+### 4.4 Learning Rate Scheduler
+Adjusting the learning rate dynamically during training is crucial to optimize model performance. The Learning Rate Scheduler offers a class of methods for this purpose. As illustrated below, the `MultiStepLR` method from the `nn.schedules` module adjusts the learning rate at specific 'milestones'.
+
+```python
+from nn.schedules import MultiStepLR
+
+mlp = MultilayerPerceptron(layers)
+optimizer = Adam(lr=1e-3, weight_decay=0.02)
+scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400], gamma=0.8)
+mlp.compile(optimizer=optimizer,
+            loss='CrossEntropy',
+            scheduler=scheduler)
+```
+
+The graph below provides a visual representation of the learning rate adjustments. Notice the 'jumps' corresponding to the specified 'milestones':
+
+<p align="center">
+  <img src="figures/lr_scheduler.png">
+  <br>
+  Loss through Epochs with MultiStepLR
+</p>
+
+As can be inferred from the graph, the learning rate scheduler significantly enhances the performance of our model.
+
+### 4.5 Save and Load Our Model
 We provide methods to save and load the model.
 - How to save?
 ```python
@@ -281,27 +339,29 @@ mlp.save('mlp.pickle')
 mlp = MultilayerPerceptron.load('mlp.pickle')
 ```
 
-### 4.5 Progress Bar Integration
+### 4.6 Progress Bar Integration
+In our recent update, we have integrated the `tqdm()` function from the `tqdm` library into the training process. While this enhancement doesn't provide real-time metrics display during training, it introduces a progress bar. This bar not only visualizes the elapsed time for each epoch but also estimates the time of completion.
 
-In our recent update, we have integrated the **'tqdm()'** function from the **'tqdm'** library into the training process. While this enhancement doesn't provide real-time metrics display during training, it introduces a progress bar. This bar not only visualizes the elapsed time for each epoch but also estimates the time of completion.
+During the training procedure, the following output will be displayed in the VS Code terminal:
 
-After completing the training procedure, the following output will be displayed in the VS Code terminal:
-
-```100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 500/500 [22:38<00:00,  2.72s/it]```
+```47%|████████████████████████████████████████████████████████████▏                                                                  | 237/500 [10:15<11:26,  2.61s/it]```
 
 ## :sparkles: 5. Testing on a Complex Dataset
 ### 5.1 Dataset Overview
 Our datasets, comprising both a training and test set, are **extremely balanced**. The number of features stands at 128, and label classes are integers ranging from 0 to 9. Notably, in our implementation, the multilayer perceptron automatically one-hot encodes them. Each class has 5,000 samples in the training set and 1,000 in the test set. **Datasets were released in the update on Oct. 2, 2023.**
+
+We have also conducted tests using Google Colab's built-in datasets (MNIST & California Housing Price). You can find the details in the Jupyter notebook under the `Quick Start` section.
 
 ### 5.2 Step-by-Step Guide
 #### Step 1. Import Required Libraries & Modules
 Do note, if other optimizers or regularization methods are necessary, make sure to import them as required.
 ```python
 import numpy as np
-import matplotlib.pyplot as plt
 from datasets.data_loader import datasets
-from model.mlperceptron import MultilayerPerceptron, Dense, Dropout, Adam
-from eval.metrics import accuracy
+from nn.mlp import MultilayerPerceptron
+from nn.layers import Dense, Dropout
+from nn.optim import Adam
+from sklearn.metrics import accuracy_score as accuracy
 ```
 #### Step 2. Load the Datasets
 Ensure that the labels are structured in a 1-D array with the shape (number_of_samples, ). Otherwise, it might trigger errors.
@@ -341,7 +401,7 @@ Outputs:
 To ensure reproducibility, we've set a random seed here. The chosen architecture is based on past experience with deep-learning tasks. Don't hesitate to experiment with your designs. Due to our implementation specifics, some activation functions could be computationally intensive. Choose wisely.
 
 <p align="center">
-  <img src="./outcomes/optimal.svg">
+  <img src="figures/optimal.svg">
   <br>
   The architecture
 </p>
@@ -376,10 +436,7 @@ loss = mlp.loss_tracker()
 train_time = mlp.training_time()
 print(f'Training time: {train_time:.2f} second(s).')
 print(f'Loss: {loss[-1]:.2f}.')
-plt.figure(figsize=(15, 4))
-plt.plot(loss)
-plt.grid()
-plt.show()
+mlp.plot_loss()
 ```
 Outputs:
 ```
@@ -387,7 +444,7 @@ Training time: 1358.89 second(s).
 Loss: 1.34.
 ```
 <p align="center">
-  <img src="./outcomes/optimal.png">
+  <img src="figures/optimal.png">
   <br>
   Training procedure
 </p>
@@ -413,9 +470,9 @@ mlp.save('mlp.pickle')
 For those seeking a satisfactory but not top-tier model, consider the following architecture:
 
 <p align="center">
-  <img src="./outcomes/good.svg">
+  <img src="figures/good.svg">
   <br>
- The architecture
+ The simplified architecture
 </p>
 
 ```python
@@ -439,7 +496,7 @@ Training time: 768.38 second(s).
 Loss: 1.35.
 ```
 <p align="center">
-  <img src="./outcomes/10classes.png">
+  <img src="figures/10classes.png">
   <br>
   Training procedure
 </p>
@@ -454,18 +511,21 @@ For clarity, the above steps might seem repetitive. Below is a more concise and 
 
 ```python
 import numpy as np
-import matplotlib.pyplot as plt
 from datasets.data_loader import datasets
-from model.mlperceptron import MultilayerPerceptron, Dense, Dropout, Adam
-from eval.metrics import accuracy
+from nn.mlp import MultilayerPerceptron
+from nn.layers import Dense, Dropout
+from nn.optim import Adam
+from nn.schedules import MultiStepLR
+from sklearn.metrics import accuracy_score as accuracy
 
-# Loading datasets
+# Load the data
 X_train, y_train = datasets(train=True)
 X_test, y_test = datasets(train=False)
 
+# Set the random seed
 np.random.seed(3407)
 
-# Defining the model architecture
+# Build the model
 layers = [
     Dense(128, 120, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.25),
@@ -484,42 +544,46 @@ layers = [
 ]
 
 mlp = MultilayerPerceptron(layers)
-mlp.compile(optimizer=Adam(lr=1e-3, weight_decay=0.02),
-            loss='CrossEntropy')
-mlp.fit(X_train, y_train, epochs=500, batch_size=32)
-
-# Displaying training metrics
+optimizer = Adam(lr=1e-3, weight_decay=0.02)
+scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400], gamma=0.8)
+mlp.compile(optimizer=optimizer,
+            loss='CrossEntropy',
+            scheduler=scheduler)
+# Train the model
+mlp.fit(X_train, y_train, epochs=500, batch_size=32, use_progress_bar=True)
+# Evaluate the model
 loss = mlp.loss_tracker()
 train_time = mlp.training_time()
 print(f'Training time: {train_time:.2f} second(s).')
 print(f'Loss: {loss[-1]:.2f}.')
-plt.figure(figsize=(15, 4))
-plt.plot(loss)
-plt.grid()
-plt.show()
+mlp.plot_loss()
 
 print(f"Accuracy on the training set is: {accuracy(y_train, mlp.predict(X_train)):.2%}." )
 print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}.")
 
-# Uncomment below to save the model
 # mlp.save('mlp.pickle')
 ```
+The use of a learning rate scheduler can enhance accuracy by approximately 2-3%.
 
-Alternatively, if you prefer to utilize our pre-trained model, refer to the following snippet, also available in the **load.py** file:
+Alternatively, if you prefer to utilize our pre-trained model, refer to the following snippet, also available in the `load.py` file:
 ```python
 from datasets.data_loader import datasets
-from model.mlperceptron import MultilayerPerceptron
-from eval.metrics import accuracy
+from nn.mlp import MultilayerPerceptron
+from sklearn.metrics import accuracy_score as accuracy
+from sklearn.metrics import precision_score
 
-# Loading datasets
+# Load the data
 X_train, y_train = datasets(train=True)
 X_test, y_test = datasets(train=False)
 
-# Loading the pre-trained model
+# Load the model
 mlp = MultilayerPerceptron.load('model_hub/mlp.pickle')
 
+# Evaluate the model
 print(f"Accuracy on the training set is: {accuracy(y_train, mlp.predict(X_train)):.2%}." )
 print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}.")
+print(f"Precision on the training set is: {precision_score(y_train, mlp.predict(X_train), average='weighted'):.2%}." )
+print(f"Precision on the test set is: {precision_score(y_test, mlp.predict(X_test), average='weighted'):.2%}.")
 ```
 ## :sparkles: 6. Project structure
 ```
@@ -536,29 +600,37 @@ print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}
 ├── model_hub/      
 │   └── mlp.pickle
 |         
-├── models/      
-|   ├── mlperceptron.py
+├── nn/      
+|   ├── callbacks.py
+|   ├── functional.py
+|   ├── layers.py
+|   ├── mlp.py
+|   ├── optim.py
 |   └── __init__.py    
 |
-├── outcomes/      
-│   └── # Some visualizations      
+├── figures/
+|   ├── *.svg     
+│   └── *.png   
 |
 ├── eval/          
 |   ├── metrics.py
 |   └── __init__.py
 |
+├── LICENSE
+├── mlp_quickstart.ipynb
+├── README.md
 ├── run.py
 └── load.py    
 ```
 
-## :sparkles: 7. Update Log
+## :sparkles: 7. Update log
 This section lists the changes and updates made to the Multilayer Perceptron framework. Each update will include the version number, release date, and a brief summary of the changes made.
 
 ### Version Update: 2023-09-05
-- **Added**: Integrated the **'tqdm()'** function from the **'tqdm'** library into the training process.
+- **Added**: Integrated the `tqdm()` function from the `tqdm` library into the training process.
 - **Re-organized**: Revamped the entire repository structure for improved integration and standardization.
 - **Improved**: Enhanced the architecture of the multilayer perceptron for the specific task.
-- **Future work**: Plan to integrate an **early stopping** strategy into the training procedure.
+- **Future work**: Plan to integrate an **early stopping** strategy into the training procedure. (Done.)
 
 ### Repo Update: 2023-10-02
 - **Added**: Released the datasets.
@@ -567,3 +639,11 @@ This section lists the changes and updates made to the Multilayer Perceptron fra
 ### Repo Update: 2023-10-07
 - **Added**: Introduced a Jupyter Notebook titled `mlp_quickstart.ipynb` for a seamless integration with Google Colab.
 - **Enhanced**: Improved the README.md for clarity and better user navigation by incorporating emojis and polishing the content.
+- **Future Work**: Plan to finish docstrings of each module.
+
+### Version and Repo Update: 2023-10-18
+- **Modularized**: Streamlined and refactored the codebase to ensure a cleaner and more intuitive user experience.
+- **Added**: Seamlessly integrated architecture construction and performance testing using Google Colab's built-in datasets.
+- **Enhanced**: Introduced new methods to the `MultilayerPerceptron`, elevating its functionality and versatility.
+- **Integrated**: Incorporated both `EarlyStopping` and `LearningRateScheduler`, offering refined training control.
+- **Progressed**: Completed a substantial portion of module docstrings, paving the way for clearer developer insights.
