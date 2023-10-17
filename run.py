@@ -49,4 +49,4 @@ mlp.plot_loss()
 print(f"Accuracy on the training set is: {accuracy(y_train, mlp.predict(X_train)):.2%}." )
 print(f"Accuracy on the test set is: {accuracy(y_test, mlp.predict(X_test)):.2%}.")
 
-# mlp.save('mlp.pickle')
+# mlp.save('model_hub/mlp.pickle')

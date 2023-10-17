@@ -29,13 +29,13 @@ class MultilayerPerceptron(object):
             i += 1
         self.output_activation = layers[-1].get_activation_name()
 
-    def compile(self, optimizer, loss, scheduler):
+    def compile(self, optimizer, loss, scheduler=None):
         if isinstance(optimizer, str):
             self.optimizer = Optimizer(optimizer)
         else:
             self.optimizer = optimizer
         self.loss = loss
-        self.scheduler = scheduler
+        self.scheduler = scheduler if scheduler is not None else None
         
     def forward(self, inputs):
         for layer in self.layers:
