@@ -27,7 +27,7 @@
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/XavierSpycy/NumPyMultilayerPerceptron/blob/main/mlp_quickstart.ipynb)
 
 :pushpin: **重要**:  
-为了访问我们的仓库中的所有文件，确保您运行在这个笔记本中的`Setup` 代码块。这个`Toy Example`部分展示了我们下面的玩具样例。这个`Pipeline` 部分提供了一个在`run.py`中的直接的流程。请注意，相较于我们的本地设置，Colab中的训练时间或许不同。这个完整的训练大约花费58分钟（这取决于分配的虚拟机）。如果这个时间太长，考虑减少轮次数知道训练时长令您满意。
+为了访问我们的仓库中的所有文件，确保您运行在这个笔记本中的`Setup` 代码块。这个`Toy Example`部分展示了我们下面的玩具样例。这个`Pipeline` 部分提供了一个在`run.py`中的直接的流程。请注意，相较于我们的本地设置，Colab中的训练时间或许不同。这个完整的训练大约花费58分钟（这取决于分配的虚拟机）。如果这个时间太长，考虑减少轮次数直到训练时长令您满意。
 
 ## :sparkles: 1. 简介
 这个仓库包含一个多层感知机的框架，实现中除了一个从SciPy导入的函数外，只使用了NumPy。这个项目受到了TensorFlow和PyTorch的启发。随着你探索得越深入，你将会注意到用这个框架构建模型与TensorFlow的风格相似。另外，一些具体的实现的源码则受PyTorch的影响。如果你热衷于理解这个框架的设计和用法，那我们一起深入了解吧！
@@ -89,7 +89,7 @@ mlp.plot_loss()
   随轮次的损失
 </p>
 
-不错！它看起来按预期运行。
+不错！它看起来如期运行。
 
 最后，我们一起看一下我们模型的决策边界。
 <p align="center">
@@ -102,7 +102,7 @@ mlp.plot_loss()
 
 ## :sparkles: 3. 关键模块
 ### 3.1 Activations
-因为该项目有一项作业演变而来，求导由手动完成而非自动。如有需要，可随意修改。
+因为该项目由一项作业演变而来，求导由手动完成而非自动。如有需要，可随意修改。
   - 公式：      
     $\mathrm{Tanh}(x) = \mathrm{tanh}(x) = \frac{\mathrm{exp}(x) - \mathrm{exp}(-x)}{\mathrm{exp}(x) + \mathrm{exp}(-x)}$
 - Tanhshrink
