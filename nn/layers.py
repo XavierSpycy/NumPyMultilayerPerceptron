@@ -1,30 +1,36 @@
 import numpy as np
 from nn.functional import Activation
 
-class Dense(object):    
-    def __init__(self, n_in=None, n_out=None,
+class Input(object):
+    def __init__(self, input_dim):
+        self.n_out = input_dim
+
+class Dense(object):
+    def __init__(self, units,
                  activation=None, activation_params={},
-                 init=None, init_params={}):
-        self.n_in = n_in
-        if n_out is None:
-            n_out = n_in
-        self.n_out = n_out
+                 init='xavier_uniform', init_params={}):
+        self.n_in = None
+        self.n_out = units
         self.activation_prev = None
         self.activation_name = activation
-        self.activation_obj = Activation(activation, **activation_params)
+        self.activation_obj = Activation(activation, activation_params)
         self.activation_f = self.activation_obj.f
         self.activation_deriv = None
-        self.params = {}
         self.set_init_params(init_params)
-        if init is None:
-            self.init(activation, 'ones')
-        else:
-            self.init(activation, init)
-        self.params['b'] = np.zeros((n_out, ))
+        self.initializer = init
+
+    def init_weights(self):
+        self.params = {}
         self.grads = {}
+        if self.activation_name == 'linear' or self.activation_name is None:
+            self.init_method(self.activation_name, 'ones')
+        else:
+            self.init_method(self.activation_name, self.initializer)
+        self.init_method(self.activation_name, self.initializer)
+        self.params['b'] = np.zeros((self.n_out, ))
         self.grads['W'] = np.zeros(self.params['W'].shape)
         self.grads['b'] = np.zeros(self.params['b'].shape)
-        
+
     def set_init_params(self, init_params):
         self.init_params = {}
         self.init_params.setdefault('a', 0.0)
@@ -38,7 +44,7 @@ class Dense(object):
             for param, value in init_params.items():
                 self.init_params[param] = value
         
-    def init(self, activation, init):
+    def init_method(self, activation, init):
         # Compute the gain
         if activation == 'tanh':
             gain = 5 / 3
@@ -85,7 +91,11 @@ class Dense(object):
             elif mode == 'out':
                 std = gain * np.sqrt(self.n_out)
             self.params['W'] = gain * np.random.normal(loc=0.0, scale=std, size=(self.n_in, self.n_out))
-        
+    
+    def get_n_in(self, n_in):
+        self.n_in = n_in
+        self.init_weights()
+
     def get_activation_name(self):
         return self.activation_name
     
@@ -98,11 +108,12 @@ class Dense(object):
         self.inputs = inputs
         return self.outputs
     
-    def backward(self, delta, output_layer=False):         
+    def backward(self, delta, is_last_layer=False):         
         self.grads['W'] = np.atleast_2d(self.inputs).T.dot(np.atleast_2d(delta))
         self.grads['b'] = np.sum(delta, axis=0)
-        if self.activation_deriv is not None:
-            delta = delta.dot(self.params['W'].T) * self.activation_deriv(self.inputs)
+        delta = np.dot(delta, self.params['W'].T)
+        if not is_last_layer and self.activation_deriv is not None:
+            delta *= self.activation_deriv(self.inputs)
         return delta
 
 class Activ(object):    
@@ -138,8 +149,7 @@ class Activ(object):
     
 class BatchNorm(object):
     def __init__(self, n_features, momentum=0.9, epsilon=1e-5):
-        self.n_features = n_features
-        self.n_in = self.n_out = n_features
+        self.n_features = self.n_in = self.n_out = n_features
         self.momentum = momentum
         self.epsilon = epsilon
         self.params = {}

@@ -94,7 +94,9 @@ class Activation(object):
         
     def elu(self, x):
         alpha = self.params['alpha']
-        return np.where(x > 0.0, x, alpha * (np.exp(x) - 1))
+        x_clipped = np.clip(x, a_min=-np.log(np.finfo(x.dtype).max / alpha), a_max=None)
+        out = np.where(x_clipped > 0.0, x_clipped, alpha * (np.exp(x_clipped) - 1))
+        return out
     
     def elu_deriv(self, a):
         alpha = self.params['alpha']
@@ -198,7 +200,7 @@ class Activation(object):
         x -= np.max(x, axis=1, keepdims=True)
         return np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
     
-    def __init__(self, activation, **kwargs):
+    def __init__(self, activation, activation_params={}):
         self.params = {}
         self.params.setdefault('min_val', -1.0) # HardTanh
         self.params.setdefault('max_val', 1.0) # HardTanh
@@ -208,76 +210,12 @@ class Activation(object):
         self.params.setdefault('lambd', 0.5) # SoftShrinkage # HardShrinkage
         self.params.setdefault('threshold', 0.0) # Threshold
         self.params.setdefault('value', 0.0) # Threshold
-        
-        if isinstance(kwargs, dict):
-            for param, value in kwargs.items():
+        self.f_deriv = None
+
+        if isinstance(activation_params, dict):
+            for param, value in activation_params.items():
                 self.params[param]  = value
-            
-        if activation == 'linear' or activation is None:
-            self.f = self.linear
-            self.f_deriv = self.linear_deriv
-        elif activation == 'sigmoid':
-            self.f = self.sigmoid
-            self.f_deriv = self.sigmoid_deriv
-        elif activation == 'logsigmoid':
-            self.f = self.logsigmoid
-            self.f_deriv = self.logsigmoid_deriv
-        elif activation == 'hardsigmoid':
-            self.f = self.hardsigmoid
-            self.f_deriv = self.hardsigmoid_deriv
-        elif activation == 'tanh':
-            self.f = self.tanh
-            self.f_deriv = self.tanh_deriv
-        elif activation == 'tanhshrink':
-            self.f = self.tanhshrink
-            self.f_deriv = self.tanhshrink_deriv
-        elif activation == 'hardtanh':
-            self.f = self.hardtanh
-            self.f_deriv = self.hardtanh_deriv
-        elif activation == 'relu':
-            self.f = self.relu
-            self.f_deriv = self.relu_deriv
-        elif activation == 'relu6':
-            self.f = self.relu6
-            self.f_deriv = self.relu6_deriv
-        elif activation == 'leaky_relu':
-            self.f = self.leaky_relu
-            self.f_deriv = self.leaky_relu_deriv
-        elif activation == 'elu':
-            self.f = self.elu
-            self.f_deriv = self.elu_deriv
-        elif activation == 'selu':
-            self.f = self.selu
-            self.f_deriv = self.selu_deriv
-        elif activation == 'celu':
-            self.f = self.celu
-            self.f_deriv = self.celu_deriv
-        elif activation == 'gelu':
-            self.f = self.gelu
-            self.f_deriv = self.gelu_deriv
-        elif activation == 'mish':
-            self.f = self.mish
-            self.f_deriv = self.mish_deriv
-        elif activation == 'swish':
-            self.f = self.swish
-            self.f_deriv = self.swish_deriv
-        elif activation == 'hardswish':
-            self.f = self.hardswish
-            self.f_deriv = self.hardswish_deriv
-        elif activation == 'softplus':
-            self.f = self.softplus
-            self.f_deriv = self.softplus_deriv
-        elif activation == 'softsign':
-            self.f = self.softsign
-            self.f_deriv = self.softsign_deriv
-        elif activation == 'softshrink':
-            self.f = self.softshrink
-            self.f_deriv = self.softshrink_deriv
-        elif activation == 'hardshrink':
-            self.f = self.hardshrink
-            self.f_deriv = self.hardshrink_deriv
-        elif activation == 'threshold':
-            self.f = self.threshold
-            self.f_deriv = self.threshold_deriv
-        elif activation == 'softmax':
-            self.f = self.softmax
+        activation = 'linear' if activation is None else activation
+        self.f = getattr(self, activation)
+        if activation != 'softmax':
+            self.f_deriv = getattr(self, activation + '_deriv')

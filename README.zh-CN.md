@@ -68,15 +68,25 @@ plt.show()
 看起来很酷！我们一起构建我们的模型。
 ```python
 layers = [
-    Dense(2, 4, activation='leaky_relu', init='kaiming_normal', init_params={'mode': 'out'}),
-    Dense(4, 3, activation='hardswish', init='xavier_normal'),
-    Dense(3, 2, activation='relu', init='kaiming_normal', init_params={'mode': 'in'}),
-    Dense(2, 1, activation='tanh', init='xavier_uniform')
+    Input(2),
+    Dense(units=4, activation='leaky_relu', init='kaiming_normal', init_params={'mode': 'out'}),
+    Dense(units=3, activation='hardswish', init='xavier_normal'),
+    Dense(units=2, activation='relu', init='kaiming_normal', init_params={'mode': 'in'}),
+    Dense(units=1, activation='tanh', init='xavier_uniform')
 ]
 mlp = MultilayerPerceptron(layers)
 mlp.compile(optimizer='Adam',
-            loss='MeanSquareError')
-mlp.fit(X, y, epochs=80, batch_size=8, use_progress_bar=True)
+            metrics=['MeanSquareError'])
+mlp.fit(X, y, epochs=3, batch_size=8, use_progress_bar=True)
+```
+当然, 在我们的实现中, 上述的过程等价于：
+```python
+mlp = MultilayerPerceptron()
+mlp.add(Input(2))
+mlp.add(Dense(units=4, activation='leaky_relu', init='kaiming_normal', init_params={'mode': 'out'}))
+mlp.add(Dense(units=3, activation='hardswish', init='xavier_normal'))
+mlp.add(Dense(units=2, activation='relu', init='kaiming_normal', init_params={'mode': 'in'}))
+mlp.add(Dense(units=1, activation='tanh', init='xavier_uniform'))
 ```
 我们已经完成它了。简单吧？那就是我们想要的！
 我们来检查一下它随轮次的损失。
@@ -207,39 +217,41 @@ mlp.plot_loss()
   - 默认参数：`gamma=0.1`
 
 ### 3.5 Callbacks
-状态：当前处于测试阶段
+状态：稳定 - 达到预期效果(~~当前处于测试阶段~~)
 - EarlyStopping:
-  - 必需参数： `validation_set`, `criterion`, `min_delta`, `patience`
-  - 默认参数：`step_size=5`, `mode='min'`, `restore_best_weights=False`, `start_from_epoch=0`
+  - 必需参数： `criterion`
+  - 默认参数：`min_delta=0.0`, `patience=5`, `mode='min'`, `restore_best_weights=False`
 
 ## :sparkles: 4. 指导
 ### 4.1 正则化（Regularization）
 在前面的玩具样例中，模型结构是：
 ```python
 layers = [
-    Dense(2, 4, activation='leaky_relu', init='kaiming_normal', init_params={'mode': 'out'}),
-    Dense(4, 3, activation='hardswish', init='xavier_normal'),
-    Dense(3, 2, activation='relu', init='kaiming_normal', init_params={'mode': 'in'}),
-    Dense(2, 1, activation='tanh', init='xavier_uniform')
+    Input(2),
+    Dense(units=4, activation='leaky_relu', init='kaiming_normal', init_params={'mode': 'out'}),
+    Dense(units=3, activation='hardswish', init='xavier_normal'),
+    Dense(units=2, activation='relu', init='kaiming_normal', init_params={'mode': 'in'}),
+    Dense(units=1, activation='tanh', init='xavier_uniform')
 ]
 ```
 假设我们的训练数据相对简单，正则化并不严格必要。然而，如果模型开始过拟合，考虑应用正则化技术。在这样的情况下，层应当构建如下：
 ```python
 from nn.layers import BatchNorm, Dropout, Activ
 layers = [
-    Dense(2, 4, init='kaiming_normal', init_params={'mode': 'out'}),
+    Input(2),
+    Dense(units=4, init='kaiming_normal', init_params={'mode': 'out'}),
     BatchNorm(4),
     Activ('leaky_relu'),
     Dropout(dropout_rate=0.2),
-    Dense(4, 3, init='xavier_normal'),
+    Dense(units=3, init='xavier_normal'),
     BatchNorm(3),
     Activ('hardswish'),
     Dropout(dropout_rate=0.2),
-    Dense(3, 2, init='kaiming_normal', init_params={'mode': 'in'}),
+    Dense(units=2, init='kaiming_normal', init_params={'mode': 'in'}),
     BatchNorm(2),
     Activ('relu'),
     Dropout(dropout_rate=0.2),
-    Dense(2, 1, activation='tanh', init='xavier_uniform')
+    Dense(units=1, activation='tanh', init='xavier_uniform')
 ]
 ```
 当使用正则化时，按照这个顺序：Linear -> BatchNorm -> Activ -> Dropout。
@@ -254,8 +266,8 @@ layers = [
 当训练模型时，优化器在玩具样例中可以有如下定义：
 ```python
 mlp.compile(optimizer='Adam',
-            loss='MeanSquareError')
-mlp.fit(X, y, epochs=80)
+            metrics='MeanSquareError')
+mlp.fit(X, y, epochs=3)
 ```
 训练过程将使用默认的优化器。然而，它也是可以自定义的：
 - SGD
@@ -273,17 +285,17 @@ optimizer = SGD(lr=1e-2, momentum=0.9, nesterov=True)
 在定义优化器后，编译这个模型：
 ```python
 mlp.compile(optimizer=optimizer,
-            loss='MeanSquareError')
+            metrics=['MeanSquareError'])
 ```
 对于使用默认设置时，这两个方法是等价的：
 ```python
 mlp.compile(optimizer='Adam',
-            loss='MeanSquareError')
+            metrics=['MeanSquareError'])
 ```
 and
 ```python
 mlp.compile(optimizer=Adam(),
-            loss='MeanSquareError')
+            metrics=['MeanSquareError'])
 ```
 <p align="center">
   <img src="figures/opt_loss.png">
@@ -311,7 +323,7 @@ mlp = MultilayerPerceptron(layers)
 optimizer = Adam(lr=1e-3, weight_decay=0.02)
 scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400], gamma=0.8)
 mlp.compile(optimizer=optimizer,
-            loss='CrossEntropy',
+            metrics=['CrossEntropy'],
             scheduler=scheduler)
 ```
 
@@ -407,24 +419,25 @@ print(test_label_dist)
 ```python
 np.random.seed(3407)
 layers = [
-    Dense(128, 120, activation='elu', init='kaiming_uniform'),
+    Input(128),
+    Dense(units=120, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.25),
-    Dense(120, 112, activation='elu', init='kaiming_uniform'),
+    Dense(units=112,  init='kaiming_uniform'),
     Dropout(dropout_rate=0.20),
-    Dense(112, 96, activation='elu', init='kaiming_uniform'),
+    Dense(units=96, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.15),
-    Dense(96, 64, activation='elu', init='kaiming_uniform'),
+    Dense(units=64, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.10),
-    Dense(64, 48, activation='elu', init='kaiming_uniform'),
+    Dense(units=48, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.05),
-    Dense(48, 32, activation='elu', init='kaiming_uniform'),
-    Dense(32, 24, activation='elu', init='kaiming_uniform'),
-    Dense(24, 16, activation='elu', init='kaiming_uniform'),
-    Dense(16, 10, activation='softmax', init='xavier_uniform')
+    Dense(units=32, activation='elu', init='kaiming_uniform'),
+    Dense(units=24, activation='elu', init='kaiming_uniform'),
+    Dense(units=16, activation='elu', init='kaiming_uniform'),
+    Dense(units=10, activation='softmax')
 ]
 mlp = MultilayerPerceptron(layers)
 mlp.compile(optimizer=Adam(lr=1e-3, weight_decay=0.02),
-            loss='CrossEntropy')
+            metrics=['CrossEntropy', 'Accuracy'])
 ```
 
 #### 步骤 5. 训练模型并展示其指标
@@ -475,13 +488,21 @@ mlp.save('mlp.pickle')
 
 ```python
 layers = [
-    Dense(128, 96, activation='elu', init='xavier_uniform'),
-    Dense(96, 64, activation='elu', init='xavier_uniform'),
-    Dense(64, 48, activation='elu', init='xavier_uniform'),
-    Dense(48, 32, activation='elu', init='xavier_uniform'),
-    Dense(32, 24, activation='elu', init='xavier_uniform'),
-    Dense(24, 16, activation='elu', init='xavier_uniform'),
-    Dense(16, 10, activation='softmax', init='xavier_uniform')
+    Input(128),
+    Dense(units=120, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.25),
+    Dense(units=112,  init='kaiming_uniform'),
+    Dropout(dropout_rate=0.20),
+    Dense(units=96, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.15),
+    Dense(units=64, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.10),
+    Dense(units=48, activation='elu', init='kaiming_uniform'),
+    Dropout(dropout_rate=0.05),
+    Dense(units=32, activation='elu', init='kaiming_uniform'),
+    Dense(units=24, activation='elu', init='kaiming_uniform'),
+    Dense(units=16, activation='elu', init='kaiming_uniform'),
+    Dense(units=10, activation='softmax')
 ]
 mlp = MultilayerPerceptron(layers)
 mlp.compile(optimizer=Adam(lr=2e-6, weight_decay=0.02),
@@ -511,9 +532,10 @@ Accuracy on the test set is: 49.58%.
 import numpy as np
 from datasets.data_loader import datasets
 from nn.mlp import MultilayerPerceptron
-from nn.layers import Dense, Dropout
+from nn.layers import Input, Dense, Dropout
 from nn.optim import Adam
 from nn.schedules import MultiStepLR
+from nn.callbacks import EarlyStopping
 from sklearn.metrics import accuracy_score as accuracy
 
 # Load the data
@@ -525,30 +547,39 @@ np.random.seed(3407)
 
 # Build the model
 layers = [
-    Dense(128, 120, activation='elu', init='kaiming_uniform'),
+    Input(128),
+    Dense(units=120, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.25),
-    Dense(120, 112, activation='elu', init='kaiming_uniform'),
+    Dense(units=112,  init='kaiming_uniform'),
     Dropout(dropout_rate=0.20),
-    Dense(112, 96, activation='elu', init='kaiming_uniform'),
+    Dense(units=96, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.15),
-    Dense(96, 64, activation='elu', init='kaiming_uniform'),
+    Dense(units=64, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.10),
-    Dense(64, 48, activation='elu', init='kaiming_uniform'),
+    Dense(units=48, activation='elu', init='kaiming_uniform'),
     Dropout(dropout_rate=0.05),
-    Dense(48, 32, activation='elu', init='kaiming_uniform'),
-    Dense(32, 24, activation='elu', init='kaiming_uniform'),
-    Dense(24, 16, activation='elu', init='kaiming_uniform'),
-    Dense(16, 10, activation='softmax', init='xavier_uniform')
+    Dense(units=32, activation='elu', init='kaiming_uniform'),
+    Dense(units=24, activation='elu', init='kaiming_uniform'),
+    Dense(units=16, activation='elu', init='kaiming_uniform'),
+    Dense(units=10, activation='softmax')
 ]
 
 mlp = MultilayerPerceptron(layers)
 optimizer = Adam(lr=1e-3, weight_decay=0.02)
 scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400], gamma=0.8)
+mmlp = MultilayerPerceptron(layers)
+optimizer = Adam(lr=1e-3, weight_decay=0.2)
+scheduler = MultiStepLR(optimizer, milestones=[20, 40, 60, 80], gamma=0.8)
+earlystopping = EarlyStopping(accuracy, patience=10, mode='max', restore_best_weights=True, start_from_epoch=20)
 mlp.compile(optimizer=optimizer,
-            loss='CrossEntropy',
-            scheduler=scheduler)
-# Train the model
-mlp.fit(X_train, y_train, epochs=500, batch_size=32, use_progress_bar=True)
+            metrics=['CrossEntropy', 'Accuracy'],
+            scheduler=scheduler
+)
+mlp.fit(X_train, y_train, 
+        epochs=90, batch_size=128, 
+        validation_data=(X_test, y_test), use_progress_bar=True, 
+        callbacks=[earlystopping]
+)
 # Evaluate the model
 loss = mlp.loss_tracker()
 train_time = mlp.training_time()
@@ -627,7 +658,7 @@ print(f"Precision on the test set is: {precision_score(y_test, mlp.predict(X_tes
 
 ### 版本更新：2023-09-05
 - **增加**：整合`tqdm`库中的`tqdm()`函数至训练过程中.
-- **重构**：改进整个仓库结构以提高统一性和标准化。
+- **重排**：改进整个仓库结构以提高统一性和标准化。
 - **提高**：提升为特定任务的多层感知机架构。
 - **未来工作**：计划整合**早停**到训练过程。(已完成。)
 
@@ -646,3 +677,7 @@ print(f"Precision on the test set is: {precision_score(y_test, mlp.predict(X_tes
 - **提升**：引入新方法至`MultilayerPerceptron`，升高了它的功能性和多样性。
 - **整合**：同时融合`EarlyStopping`和`LearningRateScheduler`，提供精炼的训练控制。
 - **进步**：完成部分模块的文档字符串，铺平通向更清晰的开发者洞见的道路。
+
+### 版本更新: 2023-11-22
+- **简化**: 简化了部分实现，尤其是用户界面。
+- **提升**: 增强了部分功能。
