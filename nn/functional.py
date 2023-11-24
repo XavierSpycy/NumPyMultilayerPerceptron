@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.optimize import fsolve
+from typing import Callable, Dict
 
-from typing import Callable
 class Activation(object):
     """
     Activation functions and their derivatives.
@@ -24,24 +24,29 @@ class Activation(object):
             func = lambda x: float(f(float(x)) - y)
             return fsolve(func, 0.0)[0]
     
+    # Activation functions
+    # Linear and its derivative
     def linear(self, x):
         return x
     
     def linear_deriv(self, a):
         return 1.0
     
+    # Tanh and its derivative
     def tanh(self, x):
         return np.tanh(x)
 
     def tanh_deriv(self, a):
         return 1.0 - a ** 2
     
+    # TanhShrink and its derivative
     def tanhshrink(self, x):
         return x - np.tanh(x)
     
     def tanhshrink_deriv(self, a):
         return 1.0 - self.tanh_deriv(a)
     
+    # HardTanh and its derivative
     def hardtanh(self, x):
         min_val, max_val = self.params['min_val'], self.params['max_val']
         conditions = [x > max_val, x > min_val, (x < max_val) & (x > min_val)]
@@ -51,12 +56,14 @@ class Activation(object):
     def hardtanh_deriv(self, a):
         return np.where((a == -1.0) | (a == 1.0), 0.0, 1.0)
     
+    # Sigmoid and its derivative
     def sigmoid(self, x):
         return 1.0 / (1.0 + np.exp(-x))
 
     def sigmoid_deriv(self, a):
         return a * (1.0 - a)
     
+    # LogSigmoid and its derivative
     def logsigmoid(self, x):
         return np.log(self.sigmoid(x))
     
@@ -64,6 +71,7 @@ class Activation(object):
         x = self.inverse(self.logsigmoid, a)
         return 1.0 - self.sigmoid(x)
     
+    # HardSigmoid and its derivative
     def hardsigmoid(self, x):
         conditions = [x >= 3.0, x <= -3.0, (x < 3.0) & (x > -3.0)]
         choices = [1.0, 0.0, x/6 + 1/2]
@@ -71,19 +79,22 @@ class Activation(object):
     
     def hardsigmoid_deriv(self, a):
         return np.where((a == 1.0) | (a == 0.0), 0.0, 1/6)
-        
+    
+    # ReLU and its derivative
     def relu(self, x):
         return np.maximum(x, 0.0)
     
     def relu_deriv(self, a):
         return np.where(a > 0.0, 1.0, 0.0)
     
+    # ReLU6 and its derivative
     def relu6(self, x):
         return np.minimum(np.maximum(x, 0.0), 6.0)
     
     def relu6_deriv(self, a):
         return np.where((a < 6.0) & (a > 0.0), 1.0, 0.0)
     
+    # Leaky ReLU and its derivative
     def leaky_relu(self, x):
         negative_slope = self.params['negative_slope']
         return np.where(x > 0.0, x, negative_slope * x)
@@ -91,7 +102,8 @@ class Activation(object):
     def leaky_relu_deriv(self, a):
         negative_slope = self.params['negative_slope']
         return np.where(a > 0.0, 1.0, negative_slope)
-        
+    
+    # ELU and its derivative
     def elu(self, x):
         alpha = self.params['alpha']
         x_clipped = np.clip(x, a_min=-np.log(np.finfo(x.dtype).max / alpha), a_max=None)
@@ -102,6 +114,7 @@ class Activation(object):
         alpha = self.params['alpha']
         return np.where(a > 0.0, 1.0, a + alpha)
     
+    # SELU and its derivative
     def selu(self, x):
         alpha = 1.6732632423543772848170429916717
         scale = 1.0507009873554804934193349852946
@@ -113,6 +126,7 @@ class Activation(object):
         x = np.where(a > 0.0, a / scale, alpha * np.log(a / alpha + 1.0))
         return np.where(x > 0.0, scale, alpha * np.exp(x / alpha))
     
+    # CELU and its derivative
     def celu(self, x):
         alpha = self.params['alpha']
         return np.where(x > 0.0, x, alpha * (np.exp(x / alpha) - 1.0))
@@ -122,6 +136,7 @@ class Activation(object):
         x = np.where(a > 0.0, a, alpha * np.log(a / alpha + 1.0))
         return np.where(x > 0.0, 1.0, alpha * np.exp(x / alpha))
     
+    # GELU and its derivative
     def gelu(self, x):
         return 0.5 * x * (1.0 + np.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * np.power(x, 3))))
     
@@ -132,6 +147,7 @@ class Activation(object):
                 * (1.0 - np.square(np.tanh(np.sqrt(2 / np.pi) * (x + 0.044715 * np.power(x, 3))))) 
                 * np.sqrt(2 / np.pi) * (1.0 + 0.134145 * np.square(x)))
     
+    # Mish and its derivative
     def mish(self, x):
         return x * np.tanh(self.softplus(x))
     
@@ -140,6 +156,7 @@ class Activation(object):
         temp = np.tanh(np.log(1 + np.exp(x)))
         return temp + x * (1 - np.square(temp)) * self.sigmoid(x)
     
+    # Swish and its derivative
     def swish(self, x):
         return x * self.sigmoid(x)
     
@@ -147,6 +164,7 @@ class Activation(object):
         x = self.inverse(self.swish, a)
         return self.sigmoid(x) + x * self.sigmoid(x) * (1.0 - self.sigmoid(x))
     
+    # Hardswish and its derivative
     def hardswish(self, x):
         conditions = [x <= -3.0, x >= 3.0, (x < 3.0) & (x > -3.0)]
         choices = [0, x, x * (x + 3.0) / 6.0]
@@ -155,7 +173,8 @@ class Activation(object):
     def hardswish_deriv(self, a):
         x = self.inverse(self.hardswish, a)
         return (2.0 * x + 3.0) / 6.0
-        
+    
+    # Softplus and its derivative
     def softplus(self, x):
         beta = self.params['beta']
         return 1.0 / beta * np.log(1 + np.exp(beta * x))
@@ -164,7 +183,8 @@ class Activation(object):
         beta = self.params['beta']
         x = self.inverse(self.softplus, a)
         return 1.0 / (1.0 + np.exp(-x * beta))
-        
+    
+    # Softsign and its derivative
     def softsign(self, x):
         return x / (1.0 + np.abs(x))
     
@@ -172,6 +192,7 @@ class Activation(object):
         x = self.inverse(self.softsign, a)
         return 1.0 / np.square(1.0 + np.abs(x))
     
+    # Softshrink and its derivative
     def softshrink(self, x):
         lambd = self.params['lambd']
         conditions = [x > lambd, x < lambd, x == lambd]
@@ -181,6 +202,7 @@ class Activation(object):
     def softshrink_deriv(self, a):
         return np.where(a != 0, 1.0, 0.0)
     
+    # Hardshrink and its derivative
     def hardshrink(self, x):
         lambd = self.params['lambd']
         return np.where((x < -lambd) | (x > lambd), x, 0.0)
@@ -188,6 +210,7 @@ class Activation(object):
     def hardshrink_deriv(self, a):
         return np.where(a != 0, 1.0, 0.0)
     
+    # Threshold and its derivative
     def threshold(self, x):
         threshold = self.params['threshold']
         value = self.params['value']
@@ -196,11 +219,19 @@ class Activation(object):
     def threshold_deriv(self, a):
         return np.where(a > 0.0, 1.0, 0.0)
     
+    # Softmax
     def softmax(self, x):
         x -= np.max(x, axis=1, keepdims=True)
         return np.exp(x) / np.sum(np.exp(x), axis=1, keepdims=True)
     
-    def __init__(self, activation, activation_params={}):
+    def __init__(self, activation: str, activation_params: Dict[str, float]={}) -> None:
+        """
+        Initialize the activation function.
+
+        Parameters:
+        - activation (str): The name of the activation function.
+        - activation_params (dict): The parameters of the activation function.
+        """
         self.params = {}
         self.params.setdefault('min_val', -1.0) # HardTanh
         self.params.setdefault('max_val', 1.0) # HardTanh

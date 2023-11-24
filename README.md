@@ -682,3 +682,6 @@ This section lists the changes and updates made to the Multilayer Perceptron fra
 ### Version Update: 2023-11-22
 - **Simplified**: Streamlined parts of the implementation, particularly the user interface.
 - **Enhanced**: Improved certain functionalities.
+
+### Repo Update: 2023-11-24
+- **Completed**: Finalized the documentation strings for all modules, enhancing clarity and developer understanding throughout the codebase.
