@@ -6,11 +6,11 @@
 - [2. 一个玩具样例](#sparkles-2-一个玩具样例)
 - [3. 关键模块](#sparkles-3-关键模块)
   - [3.1. Activations](#31-activations)
-  - [3.2. Layers](#32-层layers)
-  - [3.3. Optimizers](#33-optimizers)
-  - [3.4. Learning Rate Scheduler](#34-learning-rate-scheduler)
-  - [3.5. Callbacks](#35-callbacks)
-- [4. 指导](#sparkles-4-指导)
+  - [3.2. 层 (Layers)](#32-层-layers)
+  - [3.3. 优化器 (Optimizers)](#33-优化器-optimizers)
+  - [3.4. 学习率调度器 (Learning Rate Scheduler)](#34-学习率调度器-learning-rate-scheduler)
+  - [3.5. 回调 (Callbacks)](#35-回调-callbacks)
+- [4. 教程](#sparkles-4-教程)
 - [5. 在一个复杂的数据集上测试](#sparkles-5-在一个复杂的数据集上测试)
 - [6. 项目结构](#sparkles-6-项目结构)
 - [7. 更新日志](#sparkles-7-更新日志)
@@ -216,13 +216,13 @@ mlp.plot_loss()
   - 必需参数：`optimizer`, `milestones`
   - 默认参数：`gamma=0.1`
 
-### 3.5 回调(Callbacks)
+### 3.5 回调 (Callbacks)
 状态：稳定 - 达到预期效果(~~当前处于测试阶段~~)
 - 早停法 (EarlyStopping):
   - 必需参数： `criterion`
   - 默认参数：`min_delta=0.0`, `patience=5`, `mode='min'`, `restore_best_weights=False`
 
-## :sparkles: 4. 指导
+## :sparkles: 4. 教程
 ### 4.1 正则化（Regularization）
 在前面的玩具样例中，模型结构是：
 ```python
