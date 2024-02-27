@@ -1,4 +1,4 @@
-English|[中文版](README.zh-CN.md)
+English | [中文版](README.zh-CN.md)
 # Multilayer Perceptron from Scratch using NumPy
 
 **Contents**
@@ -134,7 +134,7 @@ Since this project evolved from an assignment, the differentiation is done manua
 - ReLU6
   - Formula:
     $\mathrm{ReLU6}(x) = \mathrm{min}(\mathrm{max}(0,x),6)$
-- leaky relu
+- Leaky relu
   - Formula:      
     $\mathrm{LeakyReLU}(x) = \mathrm{max}(0,x) + \alpha * \mathrm{min}(0,x)$
 - ELU
@@ -569,7 +569,7 @@ layers = [
 mlp = MultilayerPerceptron(layers)
 optimizer = Adam(lr=1e-3, weight_decay=0.02)
 scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400], gamma=0.8)
-mmlp = MultilayerPerceptron(layers)
+mlp = MultilayerPerceptron(layers)
 optimizer = Adam(lr=1e-3, weight_decay=0.2)
 scheduler = MultiStepLR(optimizer, milestones=[20, 40, 60, 80], gamma=0.8)
 earlystopping = EarlyStopping(accuracy, patience=10, mode='max', restore_best_weights=True, start_from_epoch=20)

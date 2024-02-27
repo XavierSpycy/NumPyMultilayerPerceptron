@@ -1,4 +1,4 @@
-[English](README.md)|中文版
+[English](README.md) | 中文版
 # 用NumPy从零实现多层感知机
 
 **目录**
@@ -132,7 +132,7 @@ mlp.plot_loss()
 - ReLU6
   - 公式：
     $\mathrm{ReLU6}(x) = \mathrm{min}(\mathrm{max}(0,x),6)$
-- leaky relu
+- Leaky relu
   - 公式：      
     $\mathrm{LeakyReLU}(x) = \mathrm{max}(0,x) + \alpha * \mathrm{min}(0,x)$
 - ELU
@@ -567,7 +567,7 @@ layers = [
 mlp = MultilayerPerceptron(layers)
 optimizer = Adam(lr=1e-3, weight_decay=0.02)
 scheduler = MultiStepLR(optimizer, milestones=[100, 200, 300, 400], gamma=0.8)
-mmlp = MultilayerPerceptron(layers)
+mlp = MultilayerPerceptron(layers)
 optimizer = Adam(lr=1e-3, weight_decay=0.2)
 scheduler = MultiStepLR(optimizer, milestones=[20, 40, 60, 80], gamma=0.8)
 earlystopping = EarlyStopping(accuracy, patience=10, mode='max', restore_best_weights=True, start_from_epoch=20)
