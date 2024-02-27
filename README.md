@@ -34,7 +34,7 @@ This repository contains a framework for a Multilayer Perceptron implemented sol
 
 ## :sparkles: 2. A toy example
 Let's dive into a toy example.
-First, we need to import the necessary packages.
+First, we need to import the necessary modules.
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -316,7 +316,7 @@ When compiling the model using `CrossEntropy`, you will see:
 </p>
 
 ### 4.4 Learning Rate Scheduler
-Adjusting the learning rate dynamically during training is crucial to optimize model performance. The Learning Rate Scheduler offers a class of methods for this purpose. As illustrated below, the `MultiStepLR` method from the `nn.schedules` module adjusts the learning rate at specific 'milestones'.
+Adjusting the learning rate dynamically during training is crucial to optimize model performance. The Learning Rate Scheduler offers a class of methods for this purpose. As illustrated below, the `MultiStepLR` method from the `nn.schedules` module adjusts the learning rate at specific `milestones`.
 
 ```python
 from nn.schedules import MultiStepLR
@@ -329,7 +329,7 @@ mlp.compile(optimizer=optimizer,
             scheduler=scheduler)
 ```
 
-The graph below provides a visual representation of the learning rate adjustments. Notice the 'jumps' corresponding to the specified 'milestones':
+The graph below provides a visual representation of the learning rate adjustments. Notice the `jumps` corresponding to the specified `milestones`:
 
 <p align="center">
   <img src="figures/lr_scheduler.png">
@@ -354,7 +354,7 @@ mlp = MultilayerPerceptron.load('mlp.pickle')
 ### 4.6 Progress Bar Integration
 In our recent update, we have integrated the `tqdm()` function from the `tqdm` library into the training process. While this enhancement doesn't provide real-time metrics display during training, it introduces a progress bar. This bar not only visualizes the elapsed time for each epoch but also estimates the time of completion.
 
-During the training procedure, the following output will be displayed in the VS Code terminal:
+During the training procedure, the following output will be displayed in the terminal:
 
 ```47%|████████████████████████████████████████████████████████████▏                                                                  | 237/500 [10:15<11:26,  2.61s/it]```
 

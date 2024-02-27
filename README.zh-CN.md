@@ -6,7 +6,7 @@
 - [2. 一个玩具样例](#sparkles-2-一个玩具样例)
 - [3. 关键模块](#sparkles-3-关键模块)
   - [3.1. Activations](#31-activations)
-  - [3.2. Layers](#32-layers)
+  - [3.2. Layers](#32-层layers)
   - [3.3. Optimizers](#33-optimizers)
   - [3.4. Learning Rate Scheduler](#34-learning-rate-scheduler)
   - [3.5. Callbacks](#35-callbacks)
@@ -34,7 +34,7 @@
 
 ## :sparkles: 2. 一个玩具样例
 让我们一起探索一个玩具样例。
-首先，我们需要导入必要的包。
+首先，我们需要导入必要的模块。
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
@@ -164,7 +164,7 @@ mlp.plot_loss()
 
 注意，因为GitHub的markdown不支持分段函数，一些函数的公式并未提供。
 
-### 3.2 Layers
+### 3.2 层 (Layers)
 - **Dense**
   - 稠密层 Dense Layer（全连接层 Fully Connected Layer）
   - **定义**:      
@@ -190,8 +190,8 @@ mlp.plot_loss()
   - **定义**:
     在神经网络中的激活层是一层将非线性函数用于它的输入，转化数据以引入非线性至模型中。这样的非线性使得网络从错误中学习并做出调整，这是学习复杂模式的关键。
 
-### 3.3 Optimizers
-- SGD (including Momentum and Nesterov)
+### 3.3 优化器 (Optimizers)
+- SGD (含 Momentum 和 Nesterov)
   - 必需参数： `lr`
   - 默认参数：`momentum=0.0`, `nesterov=False`, `weight_decay=0.0`
 - Adagrad
@@ -204,7 +204,7 @@ mlp.plot_loss()
   - 必需参数： None
   - 默认参数：`lr=1e-3`, `beta1=0.9`, `beta2=0.999`, `epsilon=1e-08`, `weight_decay=0.0`
 
-### 3.4 Learning Rate Scheduler
+### 3.4 学习率调度器 (Learning Rate Scheduler)
 状态：稳定 - 达到预期效果
 - StepLR
   - 必需参数：`optimizer`, `step_size`
@@ -216,9 +216,9 @@ mlp.plot_loss()
   - 必需参数：`optimizer`, `milestones`
   - 默认参数：`gamma=0.1`
 
-### 3.5 Callbacks
+### 3.5 回调(Callbacks)
 状态：稳定 - 达到预期效果(~~当前处于测试阶段~~)
-- EarlyStopping:
+- 早停法 (EarlyStopping):
   - 必需参数： `criterion`
   - 默认参数：`min_delta=0.0`, `patience=5`, `mode='min'`, `restore_best_weights=False`
 
@@ -292,7 +292,7 @@ mlp.compile(optimizer=optimizer,
 mlp.compile(optimizer='Adam',
             metrics=['MeanSquareError'])
 ```
-and
+和
 ```python
 mlp.compile(optimizer=Adam(),
             metrics=['MeanSquareError'])
@@ -304,7 +304,7 @@ mlp.compile(optimizer=Adam(),
 </p>
 
 ### 4.3 损失函数
-不仅仅可以使用`MeanSquareError`，您还可以使用but you can also use `CrossEntropy`。更有意思的是，独热编码作为内置方法已提供，所以您无需传入预处理后的数据给模型。但是，请确保传入模型的数据是数值编码的。
+不仅仅可以使用`MeanSquareError`，您还可以使用`CrossEntropy`。更有意思的是，独热编码作为内置方法已提供，所以您无需传入预处理后的数据给模型。但是，请确保传入模型的数据是数值编码的。
 
 当用`CrossEntropy`编译模型时，您将看到：
 <p align="center">
@@ -314,7 +314,7 @@ mlp.compile(optimizer=Adam(),
 </p>
 
 ### 4.4 学习率调度器（Learning Rate Scheduler）
-在训练中动态调整学习率对于优化模型性能是关键的。为此目的，学习率调度器提供了一类方法。如下所示，来自`nn.schedules`的`MultiStepLR`在特定的'milestones'处调整学习率。
+在训练中动态调整学习率对于优化模型性能是关键的。为此目的，学习率调度器提供了一类方法。如下所示，来自`nn.schedules`的`MultiStepLR`在特定的`milestones`处调整学习率。
 
 ```python
 from nn.schedules import MultiStepLR
@@ -327,7 +327,7 @@ mlp.compile(optimizer=optimizer,
             scheduler=scheduler)
 ```
 
-下图提供了学习率调整的可视化表示。注意，这些‘跳跃’对应了特定的'milestones'：
+下图提供了学习率调整的可视化表示。注意，这些`跳跃`对应了特定的`milestones`：
 
 <p align="center">
   <img src="figures/lr_scheduler.png">
@@ -352,7 +352,7 @@ mlp = MultilayerPerceptron.load('mlp.pickle')
 ### 4.6 进度条整合
 在我们最近的更新中，我们整合了来自`tqdm` 库的`tqdm()`函数。尽管这个优化不提供训练中的实时指标，但它引入了进度条。该进度条不仅仅可视化了每个轮次的消耗时间，还预计完成的时间。
 
-在训练过程中，以下的输出将会显示在VS Code终端：
+在训练过程中，以下的输出将会显示在终端：
 
 ```47%|████████████████████████████████████████████████████████████▏                                                                  | 237/500 [10:15<11:26,  2.61s/it]```
 
